@@ -1,22 +1,18 @@
+#include <WiFi.h>
+#include <IoTStarterKit_WiFi.h>
+
 #define VIB_SENSOR A0
 #define TOUCH 1
 
-#include <WiFi.h>
-#include <IoTStarterKit_WiFi.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
+#define deviceID "baksosD1566959289843"
+#define authnRqtNo "bluf60n11"
+#define extrSysID "OPEN_TCP_001PTL001_1000007612"
+
+#define WIFI_SSID "ICT-LAB-2.4G" // SSID
+#define WIFI_PASS "12345678" //psswd
+#define TAG_ID "PIEZO"
 
 IoTMakers g_im;
-
-#define deviceID    "baksosD1566959289843"
-#define authnRqtNo  "bluf60n11"
-#define extrSysID   "OPEN_TCP_001PTL001_1000007612"
-
-#define WIFI_SSID   "ICT-LAB-2.4G"
-#define WIFI_PASS   "12345678"
-
-
-#define TAG_ID "PIEZO"
 
 void init_iotmakers()
 {
@@ -50,43 +46,31 @@ void init_iotmakers()
   }
 }
 
-void setup(){
-  Serial.begin(9600);
+void setup() {
   pinMode(VIB_SENSOR, INPUT);
+  Serial.begin(9600);
+  init_iotmakers();
 }
 
-void loop(){
-
-  static unsigned long tick = millis();
+void loop() {
 
   if(g_im.isServerDisconnected() == 1)
   {
     init_iotmakers();
   }
 
-    send_touch();
+  int dTouch;
+  int aTouch;
 
-  g_im.loop();
-}
+  dTouch = digitalRead(VIB_SENSOR);
+  aTouch = analogRead(VIB_SENSOR);
 
-int send_touch(){
-
-    int isTouch = digitalRead(VIB_SENSOR);
-    int data;
-  if(isTouch == TOUCH){
-    Serial.println("TOUCH");
-    int data = analogRead(VIB_SENSOR);
-    Serial.println(data);
-    }
-  
+  if(dTouch == TOUCH){
+    Serial.println("TOUCHED");
+    g_im.send_numdata(TAG_ID, (int)aTouch);
+  } else {
+    g_im.send_numdata(TAG_ID, (int)aTouch);
+  }
   delay(100);
-
-  
-  if(g_im.send_numdata(TAG_ID, (double)data) < 0)
-  {
-    Serial.println(F("fail"));
-    return -1;
-  }
-
-  return 0;
-  }
+  g_im.loop(); 
+}
